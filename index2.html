@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Formulário de Pendências da Obra</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cor-principal: #b30000;
+      --cor-texto: #333;
+      --cor-borda: #ccc;
+      --cor-particula: rgba(179,0,0,0.1);
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'Montserrat',sans-serif; background:#fafafa; color:var(--cor-texto); overflow-x:hidden; }
+    header { display:flex; align-items:center; gap:20px; padding:30px 20px; background:#fff; box-shadow:0 4px 20px rgba(0,0,0,0.05); position:relative; z-index:2; }
+    header video { width:90px; height:auto; }
+    header h1 { font-size:2rem; color:var(--cor-principal); }
+    .background { position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:0; overflow:hidden; background:linear-gradient(135deg,#fff,#f0f0f0); }
+    svg.gear { position:absolute; fill:rgba(179,0,0,0.08); animation:spin linear infinite; }
+    svg.gear.small{width:60px;height:60px;animation-duration:18s;}
+    svg.gear.medium{width:90px;height:90px;animation-duration:30s;}
+    svg.gear.large{width:140px;height:140px;animation-duration:45s;}
+    @keyframes spin{0%{transform:rotate(0);}100%{transform:rotate(360deg);}}
+    .spark, .particle { position:absolute; border-radius:50%; }
+    .spark { width:4px; height:4px; background:#ff6600; animation:fall 3s ease-in-out infinite; opacity:0.7; }
+    .particle { width:8px; height:8px; background:var(--cor-particula); animation:float 6s infinite ease-in-out; opacity:0.4; }
+    @keyframes fall{0%{transform:translateY(-5px);opacity:1;}100%{transform:translateY(200vh) translateX(40px);opacity:0;}}
+    @keyframes float{0%{transform:translateY(0);}50%{transform:translateY(-20px);}100%{transform:translateY(0);}}
+    form { max-width:960px; margin:40px auto; background:#fff; padding:40px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.1); position:relative; z-index:2; }
+    .section { margin-bottom:30px; border-left:6px solid var(--cor-principal); padding:20px; background:#fcfcfc; border-radius:8px; }
+    .section h2 { font-size:1.2rem; margin-bottom:12px; color:var(--cor-principal); }
+    .icon-title { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+    .icon-title i { font-size:1.3rem; color:var(--cor-principal); }
+    .radio-group { display:flex; flex-wrap:wrap; gap:20px; margin-bottom:12px; }
+    input, textarea { width:100%; padding:12px; margin-bottom:12px; border:1px solid var(--cor-borda); border-radius:6px; font-size:15px; }
+    input:focus, textarea:focus { outline:none; border-color:var(--cor-principal); box-shadow:0 0 0 4px rgba(179,0,0,0.2); }
+    table { width:100%; border-collapse:collapse; margin-top:10px; }
+    th, td { border:1px solid var(--cor-borda); padding:8px; font-size:14px; }
+    th { background:#f3f3f3; }
+    .add-row { margin:10px 0; padding:6px 12px; background:var(--cor-principal); color:#fff; border:none; border-radius:6px; cursor:pointer; }
+    .add-row:hover { background:#8e0000; }
+    button[type="submit"], .export-csv { background:var(--cor-principal); color:#fff; padding:12px 20px; border:none; border-radius:8px; font-size:16px; cursor:pointer; margin-right:10px; }
+    button:hover { background:#8e0000; }
+    @media (max-width:600px){ header{flex-direction:column;align-items:center;} form{padding:20px;} }
+  </style>
+</head>
+<body>
+  <div class="background" id="bg"></div>
+  <header style="justify-content: center;">
+  <video autoplay muted loop playsinline style="width: 200px; height: auto;">
+    <source src="logo-mse.mp4" type="video/mp4">
+    Seu navegador não suporta vídeo.
+  </video>
+</header>
+
+  <form id="obraForm">
+    <!-- Informações -->
+    <div class="section"><div class="icon-title"><i class="fas fa-building"></i><h2>Informações da Obra</h2></div>
+      <input type="text" name="nome_obra" placeholder="Nome da Obra" required>
+      <input type="date" name="data" required>
+      <input type="text" name="responsavel" placeholder="Responsável" required>
+      <input type="email" name="email" placeholder="E‑mail para contato" required>
+    </div>
+    <!-- Reembolsos -->
+    <div class="section"><div class="icon-title"><i class="fas fa-money-bill-wave"></i><h2>Reembolsos pendentes de envio</h2></div>
+      <div class="radio-group"><label><input type="radio" name="reembolso_envio" value="Sim" required> SIM</label><label><input type="radio" name="reembolso_envio" value="Não"> NÃO</label></div>
+      <button type="button" class="add-row" data-target="t-reembolso">+ Adicionar linha</button>
+      <table id="t-reembolso"><thead><tr><th>Tipo despesa</th><th>Valor R$</th><th>Data receb.</th><th>Motivo pendência</th><th>Ações</th></tr></thead><tbody></tbody></table>
+    </div>
+    <!-- Reembolsos 5 dias -->
+    <div class="section"><div class="icon-title"><i class="fas fa-hourglass-half"></i><h2>Reembolsos sem evolução há mais de 5 dias</h2></div>
+      <div class="radio-group"><label><input type="radio" name="reembolso_5dias" value="Sim" required> SIM</label><label><input type="radio" name="reembolso_5dias" value="Não"> NÃO</label></div>
+      <button type="button" class="add-row" data-target="t-reembolso5">+ Adicionar linha</button>
+      <table id="t-reembolso5"><thead><tr><th>Nº pedido/RDV</th><th>Valor R$</th><th>Data envio</th><th>Status atual</th><th>Ações</th></tr></thead><tbody></tbody></table>
+    </div>
+    <!-- Refeições -->
+    <div class="section"><div class="icon-title"><i class="fas fa-utensils"></i><h2>Pedidos de refeições (última quinzena)</h2></div>
+      <div class="radio-group"><label><input type="radio" name="refeicoes" value="Sim" required> SIM</label><label><input type="radio" name="refeicoes" value="Não"> NÃO</label></div>
+      <button type="button" class="add-row" data-target="t-refeicoes">+ Adicionar linha</button>
+      <table id="t-refeicoes"><thead><tr><th>Tipo despesa</th><th>Valor R$</th><th>Data receb.</th><th>Motivo pendência</th><th>Ações</th></tr></thead><tbody></tbody></table>
+    </div>
+    <!-- Vistorias -->
+    <div class="section"><div class="icon-title"><i class="fas fa-clipboard-check"></i><h2>Vistorias pendentes</h2></div>
+      <div class="radio-group"><label><input type="radio" name="vistorias" value="Sim" required> SIM</label><label><input type="radio" name="vistorias" value="Não"> NÃO</label></div>
+      <button type="button" class="add-row" data-target="t-vistorias">+ Adicionar linha</button>
+      <table id="t-vistorias"><thead><tr><th>Endereço imóvel</th><th>Tipo (entrada/saída)</th><th>Motivo pendência</th><th>Ações</th></tr></thead><tbody></tbody></table>
+    </div>
+    <!-- Pedidos -->
+    <div class="section"><div class="icon-title"><i class="fas fa-truck-loading"></i><h2>Pedidos pendentes</h2></div>
+      <div class="radio-group"><label><input type="radio" name="pedidos" value="Sim" required> SIM</label><label><input type="radio" name="pedidos" value="Não"> NÃO</label><span>Status atualizado na planilha?</span><label><input type="radio" name="planilha" value="Sim" required> SIM</label><label><input type="radio" name="planilha" value="Não"> NÃO</label></div>
+      <button type="button" class="add-row" data-target="t-pedidos">+ Adicionar linha</button>
+      <table id="t-pedidos"><thead><tr><th>Fornecedor</th><th>Data emissão NF</th><th>Motivo pendência</th><th>Ações</th></tr></thead><tbody></tbody></table>
+    </div>
+    <button class="export-csv" type="button" onclick="exportCSV()">Exportar CSV</button>
+    <button type="submit">Enviar Pendências</button>
+  </form>
+<script>
+  document.getElementById('obraForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const form = e.target;
+    const data = {
+      nome_obra: form.nome_obra.value,
+      data: form.data.value,
+      responsavel: form.responsavel.value,
+      email: form.email.value,
+      reembolso_envio: form.reembolso_envio.value,
+      reembolso_5dias: form.reembolso_5dias.value,
+      refeicoes: form.refeicoes.value,
+      vistorias: form.vistorias.value,
+      pedidos: form.pedidos.value,
+      planilha: form.planilha.value
+    };
+
+    fetch('https://script.google.com/macros/s/AKfycbw95DXZcbU65nMjEFrGAVUDkk-9B_9sHyDXRFs3ulxmZgHJwsDKDMaczCu-G23W1n9q/exec', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(res => res.text())
+    .then(msg => {
+      alert('✅ Dados enviados com sucesso para a planilha e e-mail!');
+      form.reset();
+    })
+    .catch(err => {
+      console.error(err);
+      alert('❌ Erro ao enviar. Verifique a conexão ou URL do Web App.');
+    });
+  });
+</script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+  <script>
+    const bg = document.getElementById('bg');
+    ['small','medium','large'].forEach(cls => {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svg.setAttribute('class','gear '+cls);
+      svg.setAttribute('viewBox','0 0 100 100');
+      svg.style.top = Math.random()*80+'%';
+      svg.style.left = Math.random()*90+'%';
+      const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      c.setAttribute('cx','50'); c.setAttribute('cy','50'); c.setAttribute('r','45');
+      svg.appendChild(c); bg.appendChild(svg);
+    });
+
+    for (let i = 0; i < 30; i++){
+      const s = document.createElement('div');
+      s.className = 'spark';
+      s.style.left = Math.random()*100 + 'vw';
+      s.style.top = Math.random()*-10 + 'vh';
+      s.style.animationDelay = Math.random()*4 + 's';
+      bg.appendChild(s);
+    }
+    for (let i = 0; i < 60; i++){
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = Math.random()*100 + 'vw';
+      p.style.top = Math.random()*100 + 'vh';
+      p.style.animationDelay = Math.random()*4 + 's';
+      bg.appendChild(p);
+    }
+
+    document.querySelectorAll('.add-row').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tbl = document.getElementById(btn.dataset.target);
+        const cols = tbl.querySelector('thead tr').children.length - 1;
+        const tr = document.createElement('tr');
+        for (let i = 0; i < cols; i++){
+          const td = document.createElement('td');
+          const inp = document.createElement('input');
+          inp.type = 'text'; inp.style.width = '100%';
+          td.appendChild(inp); tr.appendChild(td);
+        }
+        const td = document.createElement('td');
+        const del = document.createElement('button');
+        del.textContent = 'Excluir';
+        del.style.background = 'red'; del.style.color = '#fff';
+        del.style.border = 'none'; del.style.borderRadius = '4px'; del.style.cursor = 'pointer';
+        del.addEventListener('click', () => tr.remove());
+        td.appendChild(del); tr.appendChild(td);
+        tbl.querySelector('tbody').appendChild(tr);
+      });
+    });
+
+    document.getElementById('obraForm').addEventListener('submit', e => {
+      e.preventDefault();
+      alert('✔️ Formulário pronto para integração.');
+    });
+
+    function exportCSV(){
+      let csv = '';
+      document.querySelectorAll('table').forEach(tbl => {
+        csv += tbl.id + '\n';
+        tbl.querySelectorAll('thead tr, tbody tr').forEach(r => {
+          csv += Array.from(r.children).map(c => c.innerText || c.querySelector('input')?.value).join(',') + '\n';
+        });
+        csv += '\n';
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'pendencias_obra.csv';
+      a.click();
+    }
+  </script>
+</body>
+</html>
