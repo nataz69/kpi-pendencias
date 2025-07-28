@@ -96,40 +96,40 @@
     <button type="submit">Enviar Pendências</button>
   </form>
 <script>
-  document.getElementById('obraForm').addEventListener('submit', function (e) {
-    e.preventDefault();
+document.getElementById('obraForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
 
-    const form = e.target;
-    const data = {
-      nome_obra: form.nome_obra.value,
-      data: form.data.value,
-      responsavel: form.responsavel.value,
-      email: form.email.value,
-      reembolso_envio: form.reembolso_envio.value,
-      reembolso_5dias: form.reembolso_5dias.value,
-      refeicoes: form.refeicoes.value,
-      vistorias: form.vistorias.value,
-      pedidos: form.pedidos.value,
-      planilha: form.planilha.value
-    };
+  const form = e.target;
+  const data = {
+    nome_obra: form.nome_obra?.value || '',
+    data: form.data?.value || '',
+    responsavel: form.responsavel?.value || '',
+    email: form.email?.value || '',
+    reembolso_envio: form.reembolso_envio?.value || '',
+    reembolso_5dias: form.reembolso_5dias?.value || '',
+    refeicoes: form.refeicoes?.value || '',
+    vistorias: form.vistorias?.value || '',
+    pedidos: form.pedidos?.value || '',
+    planilha: form.planilha?.value || ''
+  };
 
-    fetch('https://script.google.com/macros/s/AKfycbw95DXZcbU65nMjEFrGAVUDkk-9B_9sHyDXRFs3ulxmZgHJwsDKDMaczCu-G23W1n9q/exec', {
+  try {
+    await fetch('https://script.google.com/macros/s/AKfycbw95DXZcbU65nMjEFrGAVUDkk-9B_9sHyDXRFs3ulxmZgHJwsDKDMaczCu-G23W1n9q/exec', {
       method: 'POST',
-      body: JSON.stringify(data),
+      mode: 'no-cors', // Evita erro de CORS, não permite resposta de volta
       headers: {
         'Content-Type': 'application/json'
-      }
-    })
-    .then(res => res.text())
-    .then(msg => {
-      alert('✅ Dados enviados com sucesso para a planilha e e-mail!');
-      form.reset();
-    })
-    .catch(err => {
-      console.error(err);
-      alert('❌ Erro ao enviar. Verifique a conexão ou URL do Web App.');
+      },
+      body: JSON.stringify(data)
     });
-  });
+
+    alert('✔️ Enviado com sucesso! As pendências foram registradas.');
+    form.reset();
+  } catch (error) {
+    console.error('Erro ao enviar formulário:', error);
+    alert('❌ Ocorreu um erro. Verifique sua conexão ou o script do Google.');
+  }
+});
 </script>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
