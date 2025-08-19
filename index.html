@@ -130,7 +130,7 @@
 
     <!-- Refeições -->
     <div class="section">
-      <div class="icon-title"><i class="fas fa-utensils"></i><h2>Há pendências nos pedidos de refeições enviados até a última quinzena?</h2></div>
+      <div class="icon-title"><i class="fas fa-utensils"></i><h2>Todos os pedidos de refeições enviados até a última quinzena</h2></div>
       <div class="radio-group">
         <strong>Sim/Não:</strong>
         <label><input type="radio" name="refeicoes" value="Sim" required> SIM</label>
@@ -153,7 +153,7 @@
 
     <!-- Vistorias -->
     <div class="section">
-      <div class="icon-title"><i class="fas fa-clipboard-check"></i><h2>Vistorias pendentes?</h2></div>
+      <div class="icon-title"><i class="fas fa-clipboard-check"></i><h2>Vistorias pendentes</h2></div>
       <div class="radio-group">
         <strong>Sim/Não:</strong>
         <label><input type="radio" name="vistorias" value="Sim" required> SIM</label>
@@ -175,7 +175,7 @@
 
     <!-- Pedidos + status planilha -->
     <div class="section">
-      <div class="icon-title"><i class="fas fa-truck-loading"></i><h2>Pedidos pendentes?</h2></div>
+      <div class="icon-title"><i class="fas fa-truck-loading"></i><h2>Pedidos pendentes</h2></div>
       <div class="radio-group">
         <strong>Há pedidos pendentes?</strong>
         <label><input type="radio" name="pedidos" value="Sim" required> SIM</label>
@@ -213,12 +213,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
   <script>
     // ======= CONFIG =======
-   // Pode colar aqui o ID OU a URL completa:
-const GAS_DEPLOY = 'AKfycbzmU6YonmoNq23eHaL722ru_1huB0_pJ6rthiyEES431-NFA8b-LT3giMziCouLIuTN';
-const GAS_URL = GAS_DEPLOY.startsWith('http')
-  ? GAS_DEPLOY
-  : `https://script.google.com/macros/s/${GAS_DEPLOY}/exec`;
-
+    const GAS_URL = 'COLE_AQUI_A_URL_DO_SEU_WEBAPP/exec'; // troque pela URL do seu Web App
 
     // ======= FUNDO ANIMADO =======
     const bg = document.getElementById('bg');
@@ -232,20 +227,62 @@ const GAS_URL = GAS_DEPLOY.startsWith('http')
     function getRadio(name){ const el=document.querySelector(`input[name="${name}"]:checked`); return el?el.value:''; }
 
     function addRowFactory(id){ const map={
-      't-reembolso':[{type:'text'},{type:'number',step:'0.01',inputmode:'decimal'},{type:'date'},{type:'textarea'}],
-      't-reembolso5':[ {type:'text'},{type:'number',step:'0.01',inputmode:'decimal'},{type:'date'},{type:'text'} ],
-      't-refeicoes':[ {type:'text'},{type:'number',step:'0.01',inputmode:'decimal'},{type:'date'},{type:'textarea'} ],
-      't-vistorias':[ {type:'text'},{type:'select',options:['Entrada','Saída']},{type:'textarea'} ],
-      't-pedidos':[ {type:'text'},{type:'date'},{type:'textarea'} ]
+      't-reembolso':[{type:'text',placeholder:'Ex.: Transporte'},{type:'number',step:'0.01',inputmode:'decimal',placeholder:'0,00'},{type:'date'},{type:'textarea',placeholder:'Explique o motivo…'}],
+      't-reembolso5':[ {type:'text',placeholder:'Nº pedido/RDV'},{type:'number',step:'0.01',inputmode:'decimal',placeholder:'0,00'},{type:'date'},{type:'text',placeholder:'Status atual'} ],
+      't-refeicoes':[ {type:'text',placeholder:'Ex.: Restaurante'},{type:'number',step:'0.01',inputmode:'decimal',placeholder:'0,00'},{type:'date'},{type:'textarea',placeholder:'Explique o motivo…'} ],
+      't-vistorias':[ {type:'text',placeholder:'Endereço do imóvel'},{type:'select',options:['Entrada','Saída']},{type:'textarea',placeholder:'Explique o motivo…'} ],
+      't-pedidos':[ {type:'text',placeholder:'Fornecedor'},{type:'date'},{type:'textarea',placeholder:'Explique o motivo…'} ]
     }; return map[id]||[]; }
-    function createInputCell(cfg){ const td=document.createElement('td'); let el; if(cfg.type==='textarea'){el=document.createElement('textarea');} else if(cfg.type==='select'){el=document.createElement('select'); (cfg.options||[]).forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o;el.appendChild(op);});} else {el=document.createElement('input'); el.type=cfg.type||'text'; if(cfg.step)el.step=cfg.step; if(cfg.inputmode)el.inputMode=cfg.inputmode;} el.style.width='100%'; td.appendChild(el); return td; }
-    function tableToObjects(tbl){ const heads=Array.from(tbl.querySelectorAll('thead th')).map(h=>h.innerText.trim()).filter(h=>h!=='Ações'); const rows=[]; tbl.querySelectorAll('tbody tr').forEach(tr=>{ const obj={}; let idx=0; Array.from(tr.children).forEach((td,i)=>{ if(i===tr.children.length-1)return; const field=heads[idx++]||`col${i+1}`; const el=td.querySelector('input, textarea, select'); obj[field]=el?(el.value??'').toString().trim():(td.innerText??'').trim(); }); if(Object.values(obj).some(v=>v&&v.length)) rows.push(obj); }); return rows; }
 
-    document.querySelectorAll('.add-row').forEach(btn=>{
-      btn.addEventListener('click', ()=>{ const tbl=document.getElementById(btn.dataset.target); const tb=tbl.querySelector('tbody'); const tr=document.createElement('tr'); addRowFactory(tbl.id).forEach(c=>tr.appendChild(createInputCell(c))); const td=document.createElement('td'); const del=document.createElement('button'); del.className='btn-del'; del.type='button'; del.textContent='×'; del.addEventListener('click',()=>tr.remove()); td.appendChild(del); tr.appendChild(td); tb.appendChild(tr); });
-    });
+    function createInputCell(cfg){
+      const td=document.createElement('td'); let el;
+      if(cfg.type==='textarea'){ el=document.createElement('textarea'); el.placeholder=cfg.placeholder||''; }
+      else if(cfg.type==='select'){ el=document.createElement('select'); (cfg.options||[]).forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o; el.appendChild(op);}); }
+      else { el=document.createElement('input'); el.type=cfg.type||'text'; if(cfg.placeholder)el.placeholder=cfg.placeholder; if(cfg.step)el.step=cfg.step; if(cfg.inputmode)el.inputMode=cfg.inputmode; }
+      el.style.width='100%'; td.appendChild(el); return td;
+    }
 
-    // Exportar CSV (opcional)
+    // ======= SERIALIZAÇÃO DE TABELAS (com tratamento especial para t-pedidos) =======
+    function tableToObjects(tbl){
+      const id = tbl.id;
+      const rows = [];
+
+      // Mapeamento específico para "Pedidos pendentes"
+      if (id === 't-pedidos'){
+        tbl.querySelectorAll('tbody tr').forEach(tr=>{
+          const fornecedor = tr.children[0]?.querySelector('input')?.value?.trim() || '';
+          const dataNF     = tr.children[1]?.querySelector('input')?.value?.trim() || '';   // <input type="date">
+          const motivo     = tr.children[2]?.querySelector('textarea')?.value?.trim() || '';
+          if (fornecedor || dataNF || motivo){
+            rows.push({
+              'FORNECEDOR': fornecedor,
+              'DATA DA EMISSÃO NF': dataNF,
+              'MOTIVO PENDÊNCIA': motivo
+            });
+          }
+        });
+        return rows;
+      }
+
+      // Genérico para as demais tabelas
+      const heads = Array.from(tbl.querySelectorAll('thead th'))
+        .map(h=>h.innerText.trim())
+        .filter(h=>h!=='Ações');
+
+      tbl.querySelectorAll('tbody tr').forEach(tr=>{
+        const obj = {}; let idx = 0;
+        Array.from(tr.children).forEach((td,i)=>{
+          if (i === tr.children.length-1) return; // pula coluna “Ações”
+          const field = heads[idx++] || `col${i+1}`;
+          const el = td.querySelector('input, textarea, select');
+          obj[field] = el ? (el.value ?? '').toString().trim() : (td.innerText ?? '').trim();
+        });
+        if (Object.values(obj).some(v=>v)) rows.push(obj);
+      });
+      return rows;
+    }
+
+    // ======= CSV (opcional) =======
     function toCSVLine(arr){ return arr.map(v=>{const s=(v??'').toString(); return /[",\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s; }).join(','); }
     function exportCSV(){
       const f=document.getElementById('obraForm'); let parts=[];
@@ -264,7 +301,7 @@ const GAS_URL = GAS_DEPLOY.startsWith('http')
     }
     document.getElementById('btnCsv').addEventListener('click', exportCSV);
 
-    // Validação: se marcar "Sim", exige pelo menos 1 linha na tabela
+    // ======= VALIDAÇÃO =======
     function validateBeforeSend(){
       const need = (name, tblId) => {
         const val = document.querySelector(`input[name="${name}"]:checked`)?.value || '';
@@ -281,7 +318,18 @@ const GAS_URL = GAS_DEPLOY.startsWith('http')
           && need('pedidos','t-pedidos');
     }
 
-    // Envio (form-encoded) – simples, sem preflight/CORS
+    // ======= ADD ROWS =======
+    document.querySelectorAll('.add-row').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const tbl=document.getElementById(btn.dataset.target);
+        const tb=tbl.querySelector('tbody'); const tr=document.createElement('tr');
+        addRowFactory(tbl.id).forEach(c=>tr.appendChild(createInputCell(c)));
+        const td=document.createElement('td'); const del=document.createElement('button'); del.className='btn-del'; del.type='button'; del.textContent='×'; del.title='Excluir';
+        del.addEventListener('click',()=>tr.remove()); td.appendChild(del); tr.appendChild(td); tb.appendChild(tr);
+      });
+    });
+
+    // ======= SUBMIT =======
     document.getElementById('obraForm').addEventListener('submit', async (e)=>{
       e.preventDefault();
       const f=e.target;
@@ -311,13 +359,8 @@ const GAS_URL = GAS_DEPLOY.startsWith('http')
       }finally{ showOverlay(false); }
     });
 
-    // Evita Enter enviar o form enquanto digita nas tabelas
+    // Evita Enter enviar o form nas tabelas
     document.addEventListener('keydown',e=>{ if(e.target?.closest('table') && e.key==='Enter') e.preventDefault(); });
   </script>
 </body>
 </html>
-
-
-
-
-
