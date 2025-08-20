@@ -23,6 +23,7 @@
     .particle{width:8px;height:8px;background:var(--cor-particula);animation:float 6s infinite ease-in-out;opacity:.4}
     @keyframes fall{0%{transform:translateY(-5px);opacity:1}100%{transform:translateY(200vh) translateX(40px);opacity:0}}
     @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+
     form{max-width:980px;margin:40px auto;background:#fff;padding:40px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.1);position:relative;z-index:2}
     .section{margin-bottom:30px;border-left:6px solid var(--cor-principal);padding:20px;background:#fcfcfc;border-radius:8px}
     .section h2{font-size:1.2rem;margin-bottom:12px;color:var(--cor-principal)}
@@ -33,10 +34,11 @@
     input,select,textarea{width:100%;padding:12px;margin-bottom:12px;border:1px solid var(--cor-borda);border-radius:6px;font-size:15px}
     textarea{min-height:64px;resize:vertical}
     input:focus,textarea:focus,select:focus{outline:none;border-color:var(--cor-principal);box-shadow:0 0 0 4px rgba(179,0,0,.2)}
+
     table{width:100%;border-collapse:collapse;margin-top:10px}
     th,td{border:1px solid var(--cor-borda);padding:8px;font-size:14px;vertical-align:top}
     th{background:#f3f3f3;text-align:left}
-    .add-row{margin:10px 0;padding:8px 12px;background:var(--cor-principal);color:#fff;border:none;border-radius:6px;cursor:pointer}
+    .add-row{margin:10px 0;padding:12px 14px;background:var(--cor-principal);color:#fff;border:none;border-radius:8px;cursor:pointer}
     .add-row:hover{background:#8e0000}
     .btn-del{width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;background:#e74c3c;color:#fff;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
     .btn-del:hover{filter:brightness(.9)}
@@ -46,14 +48,31 @@
     button[type="submit"],.export-csv{background:var(--cor-principal);color:#fff;padding:12px 20px;border:none;border-radius:8px;font-size:16px;cursor:pointer}
     button:hover{background:#8e0000}
 
-    /* ======= Mobile: tabelas viram cards ======= */
+    /* ======= Tabelas viram “cards” no mobile ======= */
     @media (max-width:640px){
       header{padding:16px}
       header video{width:160px}
       form{padding:22px;margin:20px auto}
       .section{padding:16px}
-      .radio-group{gap:8px 12px}
-      .add-row,.actions button{width:100%}
+      .icon-title h2{font-size:clamp(1.1rem,5.2vw,1.5rem);line-height:1.2;overflow-wrap:anywhere;hyphens:auto}
+
+      /* impede zoom do iOS e melhora toque */
+      input,select,textarea,button{font-size:16px}
+
+      /* radios “Sim/Não” alinhados em 3 colunas */
+      .radio-group{
+        display:grid;
+        grid-template-columns:auto 1fr 1fr; /* Legenda | SIM | NÃO */
+        align-items:center;
+        column-gap:12px;row-gap:8px;margin-top:6px
+      }
+      .radio-group strong{justify-self:start;white-space:nowrap;margin-right:4px}
+      .radio-group label{gap:8px;white-space:nowrap;line-height:1}
+      .radio-group input[type="radio"]{width:22px;height:22px;flex:0 0 auto}
+
+      .add-row,.actions button{width:100%;padding:14px}
+
+      /* cards */
       table, thead, tbody, th, td, tr{display:block}
       thead{position:absolute;left:-9999px;top:-9999px}
       table{border:0}
@@ -230,7 +249,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
   <script>
     // ======= CONFIG =======
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbzmU6YonmoNq23eHaL722ru_1huB0_pJ6rthiyEES431-NFA8b-LT3giMziCouLIuTN/exec';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbw8PLgWucwa1kC_Gl42xR5PSt2Lqpcrz0M1rvZ5uuGwSOb4ELYk9YiMr7N5-TV2MaQ/exec';
 
     // ======= FUNDO ANIMADO =======
     const bg = document.getElementById('bg');
@@ -260,13 +279,11 @@
       el.style.width='100%'; td.appendChild(el); return td;
     }
 
-    // ======= RESPONSIVE LABELS (tabelas -> cards no mobile) =======
+    // ======= RESPONSIVE LABELS =======
     function applyResponsiveLabels(tbl){
       const heads = Array.from(tbl.querySelectorAll('thead th')).map(h=>h.innerText.trim());
       tbl.querySelectorAll('tbody tr').forEach(tr=>{
-        Array.from(tr.children).forEach((td,i)=>{
-          td.setAttribute('data-label', heads[i] || '');
-        });
+        Array.from(tr.children).forEach((td,i)=>{ td.setAttribute('data-label', heads[i] || ''); });
       });
     }
     function applyLabelsAll(){ document.querySelectorAll('table').forEach(applyResponsiveLabels); }
@@ -279,7 +296,7 @@
         tbl.querySelectorAll('tbody tr').forEach(tr=>{
           const fornecedor = tr.children[0]?.querySelector('input')?.value?.trim() || '';
           const dataRaw    = tr.children[1]?.querySelector('input')?.value?.trim() || '';
-          const dataNF     = toBR(dataRaw);
+          const dataNF     = toBR(dataRaw); // dd/MM/yyyy
           const motivo     = tr.children[2]?.querySelector('textarea')?.value?.trim() || '';
           if (fornecedor || dataNF || motivo){
             rows.push({'FORNECEDOR': fornecedor,'DATA DA EMISSÃO NF': dataNF,'MOTIVO PENDÊNCIA': motivo});
@@ -360,7 +377,7 @@
         const td=document.createElement('td'); const del=document.createElement('button'); del.className='btn-del'; del.type='button'; del.textContent='×'; del.title='Excluir';
         del.addEventListener('click',()=>{ tr.remove(); applyResponsiveLabels(tbl); });
         td.appendChild(del); tr.appendChild(td); tb.appendChild(tr);
-        applyResponsiveLabels(tbl); // <-- garante rótulos no mobile
+        applyResponsiveLabels(tbl); // garante rótulos no mobile
       });
     });
 
@@ -405,7 +422,7 @@
     // Evita Enter enviar o form nas tabelas
     document.addEventListener('keydown',e=>{ if(e.target?.closest('table') && e.key==='Enter') e.preventDefault(); });
 
-    // Aplica rótulos responsivos em tabelas já existentes (se houver)
+    // Aplica rótulos responsivos em tabelas já existentes
     applyLabelsAll();
   </script>
 </body>
