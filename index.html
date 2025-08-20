@@ -12,12 +12,12 @@
     body{font-family:'Montserrat',sans-serif;background:#fafafa;color:var(--cor-texto);overflow-x:hidden}
     header{display:flex;justify-content:center;padding:30px 20px;background:#fff;box-shadow:0 4px 20px rgba(0,0,0,.05);position:relative;z-index:2}
     header video{width:220px;height:auto}
-    .background{position:fixed;inset:0;z-index:0;overflow:hidden;background:linear-gradient(180deg,#f8f9fb 0%,#eef0f4 100%)}
+    .background{position:fixed;inset:0;z-index:0;overflow:hidden;background:linear-gradient(180deg,#f8f9fb,#eef0f4)}
     svg.gear{position:absolute;fill:rgba(179,0,0,.08);animation:spin linear infinite}
     svg.gear.small{width:60px;height:60px;animation-duration:18s}
     svg.gear.medium{width:90px;height:90px;animation-duration:30s}
     svg.gear.large{width:140px;height:140px;animation-duration:45s}
-    @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+    @keyframes spin{to{transform:rotate(360deg)}}
     .spark,.particle{position:absolute;border-radius:50%}
     .spark{width:4px;height:4px;background:#ff6600;animation:fall 3s ease-in-out infinite;opacity:.7}
     .particle{width:8px;height:8px;background:var(--cor-particula);animation:float 6s infinite ease-in-out;opacity:.4}
@@ -213,7 +213,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
   <script>
     // ======= CONFIG =======
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbzmU6YonmoNq23eHaL722ru_1huB0_pJ6rthiyEES431-NFA8b-LT3giMziCouLIuTN/exec'; // troque pela URL do seu Web App
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbzmU6YonmoNq23eHaL722ru_1huB0_pJ6rthiyEES431-NFA8b-LT3giMziCouLIuTN/exec';
 
     // ======= FUNDO ANIMADO =======
     const bg = document.getElementById('bg');
@@ -225,6 +225,7 @@
     const overlay=document.getElementById('overlay');
     function showOverlay(v){ overlay.style.display=v?'flex':'none'; overlay.setAttribute('aria-hidden', v?'false':'true'); }
     function getRadio(name){ const el=document.querySelector(`input[name="${name}"]:checked`); return el?el.value:''; }
+    const toBR = s => (/^\d{4}-\d{2}-\d{2}$/.test(s||'')) ? (()=>{const [y,m,d]=s.split('-'); return `${d}/${m}/${y}`})() : (s||'');
 
     function addRowFactory(id){ const map={
       't-reembolso':[{type:'text',placeholder:'Ex.: Transporte'},{type:'number',step:'0.01',inputmode:'decimal',placeholder:'0,00'},{type:'date'},{type:'textarea',placeholder:'Explique o motivo…'}],
@@ -242,37 +243,41 @@
       el.style.width='100%'; td.appendChild(el); return td;
     }
 
-    // ======= SERIALIZAÇÃO DE TABELAS (com tratamento especial para t-pedidos) =======
+    // ======= SERIALIZAÇÃO DE TABELAS (com ajustes) =======
     function tableToObjects(tbl){
-      const id = tbl.id;
-      const rows = [];
+      const id = tbl.id; const rows = [];
 
-      // Mapeamento específico para "Pedidos pendentes"
       if (id === 't-pedidos'){
         tbl.querySelectorAll('tbody tr').forEach(tr=>{
           const fornecedor = tr.children[0]?.querySelector('input')?.value?.trim() || '';
-          const dataNF     = tr.children[1]?.querySelector('input')?.value?.trim() || '';   // <input type="date">
+          const dataRaw    = tr.children[1]?.querySelector('input')?.value?.trim() || '';
+          const dataNF     = toBR(dataRaw);
           const motivo     = tr.children[2]?.querySelector('textarea')?.value?.trim() || '';
           if (fornecedor || dataNF || motivo){
-            rows.push({
-              'FORNECEDOR': fornecedor,
-              'DATA DA EMISSÃO NF': dataNF,
-              'MOTIVO PENDÊNCIA': motivo
-            });
+            rows.push({'FORNECEDOR': fornecedor,'DATA DA EMISSÃO NF': dataNF,'MOTIVO PENDÊNCIA': motivo});
           }
         });
         return rows;
       }
 
-      // Genérico para as demais tabelas
-      const heads = Array.from(tbl.querySelectorAll('thead th'))
-        .map(h=>h.innerText.trim())
-        .filter(h=>h!=='Ações');
+      if (id === 't-vistorias'){
+        tbl.querySelectorAll('tbody tr').forEach(tr=>{
+          const endereco = tr.children[0]?.querySelector('input')?.value?.trim() || '';
+          const tipoEl   = tr.children[1]?.querySelector('select,input');
+          const tipo     = tipoEl ? (tipoEl.value ?? '').toString().trim() : '';
+          const motivo   = tr.children[2]?.querySelector('textarea')?.value?.trim() || '';
+          if (endereco || tipo || motivo){
+            rows.push({'ENDEREÇO IMÓVEL': endereco,'TIPO (ENTRADA/SAÍDA)': tipo,'MOTIVO PENDÊNCIA': motivo});
+          }
+        });
+        return rows;
+      }
 
+      const heads = Array.from(tbl.querySelectorAll('thead th')).map(h=>h.innerText.trim()).filter(h=>h!=='Ações');
       tbl.querySelectorAll('tbody tr').forEach(tr=>{
-        const obj = {}; let idx = 0;
+        const obj = {}; let idx=0;
         Array.from(tr.children).forEach((td,i)=>{
-          if (i === tr.children.length-1) return; // pula coluna “Ações”
+          if (i === tr.children.length-1) return;
           const field = heads[idx++] || `col${i+1}`;
           const el = td.querySelector('input, textarea, select');
           obj[field] = el ? (el.value ?? '').toString().trim() : (td.innerText ?? '').trim();
@@ -364,5 +369,3 @@
   </script>
 </body>
 </html>
-
-
