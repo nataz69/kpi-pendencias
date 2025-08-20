@@ -251,7 +251,7 @@
         tbl.querySelectorAll('tbody tr').forEach(tr=>{
           const fornecedor = tr.children[0]?.querySelector('input')?.value?.trim() || '';
           const dataRaw    = tr.children[1]?.querySelector('input')?.value?.trim() || '';
-          const dataNF     = toBR(dataRaw);
+          const dataNF     = toBR(dataRaw); // <-- converte para dd/MM/yyyy
           const motivo     = tr.children[2]?.querySelector('textarea')?.value?.trim() || '';
           if (fornecedor || dataNF || motivo){
             rows.push({'FORNECEDOR': fornecedor,'DATA DA EMISSÃO NF': dataNF,'MOTIVO PENDÊNCIA': motivo});
@@ -277,7 +277,7 @@
       tbl.querySelectorAll('tbody tr').forEach(tr=>{
         const obj = {}; let idx=0;
         Array.from(tr.children).forEach((td,i)=>{
-          if (i === tr.children.length-1) return;
+          if (i === tr.children.length-1) return; // pula “Ações”
           const field = heads[idx++] || `col${i+1}`;
           const el = td.querySelector('input, textarea, select');
           obj[field] = el ? (el.value ?? '').toString().trim() : (td.innerText ?? '').trim();
@@ -341,9 +341,16 @@
       if (!validateBeforeSend()) return;
 
       const payload={
-        nome_obra:f.nome_obra.value, data:f.data.value, responsavel:f.responsavel.value.trim(), email:f.email.value.trim(),
-        reembolso_envio:getRadio('reembolso_envio'), reembolso_5dias:getRadio('reembolso_5dias'),
-        refeicoes:getRadio('refeicoes'), vistorias:getRadio('vistorias'), pedidos:getRadio('pedidos'), planilha:getRadio('planilha'),
+        nome_obra:f.nome_obra.value, 
+        data:f.data.value, 
+        responsavel:f.responsavel.value.trim(), 
+        email:f.email.value.trim(),
+        reembolso_envio:getRadio('reembolso_envio'), 
+        reembolso_5dias:getRadio('reembolso_5dias'),
+        refeicoes:getRadio('refeicoes'), 
+        vistorias:getRadio('vistorias'), 
+        pedidos:getRadio('pedidos'), 
+        planilha:getRadio('planilha'),
         observacoes:f.observacoes?.value||'',
         tabelas:{
           reembolsos_pendentes:tableToObjects(document.getElementById('t-reembolso')),
@@ -369,4 +376,3 @@
   </script>
 </body>
 </html>
-
