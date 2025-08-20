@@ -45,7 +45,24 @@
     .spinner{width:56px;height:56px;border-radius:50%;border:6px solid #ddd;border-top-color:var(--cor-principal);animation:spin 1s linear infinite}
     button[type="submit"],.export-csv{background:var(--cor-principal);color:#fff;padding:12px 20px;border:none;border-radius:8px;font-size:16px;cursor:pointer}
     button:hover{background:#8e0000}
-    @media (max-width:600px){form{padding:22px}}
+
+    /* ======= Mobile: tabelas viram cards ======= */
+    @media (max-width:640px){
+      header{padding:16px}
+      header video{width:160px}
+      form{padding:22px;margin:20px auto}
+      .section{padding:16px}
+      .radio-group{gap:8px 12px}
+      .add-row,.actions button{width:100%}
+      table, thead, tbody, th, td, tr{display:block}
+      thead{position:absolute;left:-9999px;top:-9999px}
+      table{border:0}
+      tr{margin:0 0 12px;border:1px solid var(--cor-borda);border-radius:8px;background:#fff}
+      td{border:0;border-bottom:1px solid #eee;position:relative;padding:10px 12px 10px 44%}
+      td:last-child{border-bottom:0;padding-left:12px;display:flex;justify-content:flex-end}
+      td::before{content:attr(data-label);position:absolute;left:12px;top:10px;width:36%;font-weight:600;color:#666}
+      td:last-child::before{display:none}
+    }
   </style>
 </head>
 <body>
@@ -243,7 +260,18 @@
       el.style.width='100%'; td.appendChild(el); return td;
     }
 
-    // ======= SERIALIZAÇÃO DE TABELAS (com ajustes) =======
+    // ======= RESPONSIVE LABELS (tabelas -> cards no mobile) =======
+    function applyResponsiveLabels(tbl){
+      const heads = Array.from(tbl.querySelectorAll('thead th')).map(h=>h.innerText.trim());
+      tbl.querySelectorAll('tbody tr').forEach(tr=>{
+        Array.from(tr.children).forEach((td,i)=>{
+          td.setAttribute('data-label', heads[i] || '');
+        });
+      });
+    }
+    function applyLabelsAll(){ document.querySelectorAll('table').forEach(applyResponsiveLabels); }
+
+    // ======= SERIALIZAÇÃO DE TABELAS =======
     function tableToObjects(tbl){
       const id = tbl.id; const rows = [];
 
@@ -251,7 +279,7 @@
         tbl.querySelectorAll('tbody tr').forEach(tr=>{
           const fornecedor = tr.children[0]?.querySelector('input')?.value?.trim() || '';
           const dataRaw    = tr.children[1]?.querySelector('input')?.value?.trim() || '';
-          const dataNF     = toBR(dataRaw); // <-- converte para dd/MM/yyyy
+          const dataNF     = toBR(dataRaw);
           const motivo     = tr.children[2]?.querySelector('textarea')?.value?.trim() || '';
           if (fornecedor || dataNF || motivo){
             rows.push({'FORNECEDOR': fornecedor,'DATA DA EMISSÃO NF': dataNF,'MOTIVO PENDÊNCIA': motivo});
@@ -330,7 +358,9 @@
         const tb=tbl.querySelector('tbody'); const tr=document.createElement('tr');
         addRowFactory(tbl.id).forEach(c=>tr.appendChild(createInputCell(c)));
         const td=document.createElement('td'); const del=document.createElement('button'); del.className='btn-del'; del.type='button'; del.textContent='×'; del.title='Excluir';
-        del.addEventListener('click',()=>tr.remove()); td.appendChild(del); tr.appendChild(td); tb.appendChild(tr);
+        del.addEventListener('click',()=>{ tr.remove(); applyResponsiveLabels(tbl); });
+        td.appendChild(del); tr.appendChild(td); tb.appendChild(tr);
+        applyResponsiveLabels(tbl); // <-- garante rótulos no mobile
       });
     });
 
@@ -366,6 +396,7 @@
         await fetch(GAS_URL,{ method:'POST', body:new URLSearchParams({payload:JSON.stringify(payload)}), mode:'no-cors' });
         alert('✔️ Enviado! Confira a aba da obra e a aba "_LOG" na planilha.');
         f.reset(); document.querySelectorAll('table tbody').forEach(tb=>tb.innerHTML='');
+        applyLabelsAll();
       }catch(err){
         console.error(err); alert('❌ Erro ao enviar. Veja o console.');
       }finally{ showOverlay(false); }
@@ -373,7 +404,9 @@
 
     // Evita Enter enviar o form nas tabelas
     document.addEventListener('keydown',e=>{ if(e.target?.closest('table') && e.key==='Enter') e.preventDefault(); });
+
+    // Aplica rótulos responsivos em tabelas já existentes (se houver)
+    applyLabelsAll();
   </script>
 </body>
 </html>
-
